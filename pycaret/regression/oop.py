@@ -6,6 +6,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np  # type: ignore
 import pandas as pd
 from joblib.memory import Memory
+from matplotlib.figure import Figure as MatplotlibFigure
+from plotly.graph_objs import Figure as PlotlyFigure
 
 from pycaret.containers.metrics.regression import get_all_metric_containers
 from pycaret.containers.models.regression import (
@@ -14,7 +16,6 @@ from pycaret.containers.models.regression import (
     get_container_default_engines,
 )
 from pycaret.internal.display import CommonDisplay
-from pycaret.internal.logging import get_logger
 from pycaret.internal.parallel.parallel_backend import ParallelBackend
 
 # Own module
@@ -26,8 +27,6 @@ from pycaret.internal.pycaret_experiment.non_ts_supervised_experiment import (
 from pycaret.loggers.base_logger import BaseLogger
 from pycaret.utils.constants import DATAFRAME_LIKE, SEQUENCE_LIKE, TARGET_LIKE
 from pycaret.utils.generic import MLUsecase, highlight_setup
-
-LOGGER = get_logger()
 
 
 class RegressionExperiment(_NonTSSupervisedExperiment, Preprocessor):
@@ -997,6 +996,7 @@ class RegressionExperiment(_NonTSSupervisedExperiment, Preprocessor):
         engine: Optional[Dict[str, str]] = None,
         verbose: bool = True,
         parallel: Optional[ParallelBackend] = None,
+        on_model_training_start_callback: Optional[Callable] = None,
     ):
         """
         This function trains and evaluates performance of all estimators available in the
@@ -1136,6 +1136,7 @@ class RegressionExperiment(_NonTSSupervisedExperiment, Preprocessor):
                 verbose=verbose,
                 parallel=parallel,
                 caller_params=caller_params,
+                on_model_training_start_callback=on_model_training_start_callback,
             )
 
         finally:
@@ -1848,14 +1849,15 @@ class RegressionExperiment(_NonTSSupervisedExperiment, Preprocessor):
         estimator,
         plot: str = "residuals",
         scale: float = 1,
-        save: bool = False,
+        save: bool | str = False,
         fold: Optional[Union[int, Any]] = None,
         fit_kwargs: Optional[dict] = None,
         plot_kwargs: Optional[dict] = None,
         groups: Optional[Union[str, Any]] = None,
         verbose: bool = True,
         display_format: Optional[str] = None,
-    ) -> Optional[str]:
+        return_fig: bool = False,
+    ) -> Optional[Union[str, MatplotlibFigure, PlotlyFigure]]:
         """
         This function analyzes the performance of a trained model on holdout set.
         It may require re-training the model in certain cases.
@@ -1937,9 +1939,12 @@ class RegressionExperiment(_NonTSSupervisedExperiment, Preprocessor):
             To display plots in Streamlit (https://www.streamlit.io/), set this to 'streamlit'.
             Currently, not all plots are supported.
 
+        return_fig: bool, defautl = False
+            whither or not return the rendered figure object
 
         Returns:
             Path to saved file, if any.
+            Or, rendered figure object if return_fig is true
 
         """
 
@@ -1954,6 +1959,7 @@ class RegressionExperiment(_NonTSSupervisedExperiment, Preprocessor):
             groups=groups,
             verbose=verbose,
             display_format=display_format,
+            return_fig=return_fig,
         )
 
     def evaluate_model(

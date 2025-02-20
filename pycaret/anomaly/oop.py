@@ -4,13 +4,10 @@ import pandas as pd
 
 from pycaret.containers.metrics.anomaly import get_all_metric_containers
 from pycaret.containers.models.anomaly import get_all_model_containers
-from pycaret.internal.logging import get_logger
 from pycaret.internal.pycaret_experiment.unsupervised_experiment import (
     _UnsupervisedExperiment,
 )
 from pycaret.utils.generic import MLUsecase
-
-LOGGER = get_logger()
 
 
 class AnomalyExperiment(_UnsupervisedExperiment):

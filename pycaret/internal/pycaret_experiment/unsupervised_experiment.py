@@ -16,7 +16,7 @@ from pycaret.containers.models.clustering import (
     get_container_default_engines,
 )
 from pycaret.internal.display import CommonDisplay
-from pycaret.internal.logging import get_logger, redirect_output
+from pycaret.internal.logging import redirect_output
 from pycaret.internal.pipeline import Pipeline as InternalPipeline
 from pycaret.internal.pipeline import estimator_pipeline, get_pipeline_fit_kwargs
 from pycaret.internal.preprocess.preprocessor import Preprocessor
@@ -25,8 +25,6 @@ from pycaret.internal.validation import is_sklearn_pipeline
 from pycaret.loggers.base_logger import BaseLogger
 from pycaret.utils.constants import DATAFRAME_LIKE, SEQUENCE_LIKE
 from pycaret.utils.generic import MLUsecase, highlight_setup
-
-LOGGER = get_logger()
 
 
 class _UnsupervisedExperiment(_TabularExperiment, Preprocessor):

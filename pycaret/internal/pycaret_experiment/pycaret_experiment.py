@@ -14,8 +14,6 @@ from pycaret.internal.logging import get_logger
 from pycaret.utils.constants import DATAFRAME_LIKE
 from pycaret.utils.generic import LazyExperimentMapping
 
-LOGGER = get_logger()
-
 
 class _PyCaretExperiment:
     # Will not include those attributes in the pickle file
@@ -28,7 +26,7 @@ class _PyCaretExperiment:
         self.exp_id = None
         self.gpu_param = False
         self.n_jobs_param = -1
-        self.logger = LOGGER
+        self.logger = get_logger()
         self._master_model_container = []
 
         # Data attrs
