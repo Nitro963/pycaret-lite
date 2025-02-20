@@ -1,13 +1,6 @@
-# Copyright (C) 2019-2024 PyCaret
-# Author: Moez Ali (moez.ali@queensu.ca)
-# Contributors (https://github.com/pycaret/pycaret/graphs/contributors)
-# License: MIT
-
-
 import logging
 import os
-from collections.abc import Callable
-from typing import Any, BinaryIO, Dict, List, Optional, Union
+from typing import Any, BinaryIO, Callable, Dict, List, Optional, Union
 
 import pandas as pd
 from joblib.memory import Memory
@@ -112,9 +105,9 @@ def setup(
     Example
     -------
     >>> from pycaret.datasets import get_data
-    >>> insurance = get_data('insurance')
-    >>> from pycaret.regression import *
-    >>> exp_name = setup(data = insurance,  target = 'charges')
+    >>> juice = get_data('juice')
+    >>> from pycaret.classification import *
+    >>> exp_name = setup(data = juice,  target = 'Purchase')
 
 
     data: dataframe-like = None
@@ -305,7 +298,7 @@ def setup(
 
     group_features: dict or None, default = None
         When the dataset contains features with related characteristics,
-        add new features with the following statistical properties of that
+        add new fetaures with the following statistical properties of that
         group: min, max, mean, std, median and mode. The parameter takes a
         dict with the group name as key and a list of feature names
         belonging to that group as value.
@@ -447,11 +440,11 @@ def setup(
 
     custom_pipeline: list of (str, transformer), dict or Pipeline, default = None
         Addidiotnal custom transformers. If passed, they are applied to the
-        pipeline last, after all the built-in transformers.
+        pipeline last, after all the build-in transformers.
 
 
     custom_pipeline_position: int, default = -1
-        Position of the custom pipeline in the overall preprocessing pipeline.
+        Position of the custom pipeline in the overal preprocessing pipeline.
         The default value adds the custom pipeline last.
 
 
@@ -2677,9 +2670,9 @@ def dashboard(
     Example
     -------
     >>> from pycaret.datasets import get_data
-    >>> insurance = get_data('insurance')
-    >>> from pycaret.regression import *
-    >>> exp_name = setup(data = insurance,  target = 'charges')
+    >>> juice = get_data('juice')
+    >>> from pycaret.classification import *
+    >>> exp_name = setup(data = juice,  target = 'Purchase')
     >>> lr = create_model('lr')
     >>> dashboard(lr)
 

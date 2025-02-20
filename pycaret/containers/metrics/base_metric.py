@@ -1,10 +1,6 @@
-# Copyright (C) 2019-2024 PyCaret
-
 # Module: containers.metrics.base_metric
 # Author: Antoni Baum (Yard1) <antoni.baum@protonmail.com>
-# Contributors (https://github.com/pycaret/pycaret/graphs/contributors)
 # License: MIT
-
 
 from typing import Any, Dict, Optional, Union
 

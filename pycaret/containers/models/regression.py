@@ -685,7 +685,7 @@ class AutomaticRelevanceDeterminationContainer(RegressorContainer):
 
         from sklearn.linear_model import ARDRegression
 
-        args = {"max_iter": 1000}
+        args = {"n_iter": 1000}
         tune_args = {}
         tune_grid = {
             "alpha_1": [

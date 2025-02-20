@@ -1,16 +1,19 @@
-# Copyright (C) 2019-2024 PyCaret
-# Author: Moez Ali (moez.ali@queensu.ca)
-# Contributors (https://github.com/pycaret/pycaret/graphs/contributors)
-# License: MIT
-
-
 """Functional API for Time Series Forecasting Experiment
 """
 
 import logging
 import os
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, BinaryIO, Dict, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import numpy as np
 import pandas as pd
@@ -1129,7 +1132,7 @@ def blend_models(
 
     weights: list, default = None
         Sequence of weights (float or int) to apply to the individual model
-        predictions. Uses uniform weights when None. Note that weights only
+        predictons. Uses uniform weights when None. Note that weights only
         apply 'mean', 'gmean' and 'median' methods.
 
 

@@ -1,5 +1,4 @@
 """Cloudpickle with forced protocol 4 for python<3.8 to fix joblib exception."""
-
 import sys
 
 from cloudpickle import Pickler as _CloudPickler

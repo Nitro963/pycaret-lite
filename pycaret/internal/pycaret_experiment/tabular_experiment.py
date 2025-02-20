@@ -4,7 +4,6 @@ import os
 import random
 import secrets
 import traceback
-from contextlib import suppress
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 from unittest.mock import patch
@@ -15,10 +14,8 @@ import plotly.express as px  # type: ignore
 import scikitplot as skplt  # type: ignore
 from IPython.display import display as ipython_display
 from joblib.memory import Memory
-from matplotlib.figure import Figure as MatplotlibFigure
 from packaging import version
 from pandas.io.formats.style import Styler
-from plotly.graph_objs import Figure as PlotlyFigure
 from sklearn.model_selection import BaseCrossValidator  # type: ignore
 from sklearn.pipeline import Pipeline
 
@@ -28,7 +25,7 @@ import pycaret.internal.persistence
 import pycaret.internal.preprocess
 import pycaret.loggers
 from pycaret.internal.display import CommonDisplay
-from pycaret.internal.logging import create_logger, redirect_output
+from pycaret.internal.logging import create_logger, get_logger, redirect_output
 from pycaret.internal.memory import get_memory
 from pycaret.internal.pipeline import Pipeline as InternalPipeline
 from pycaret.internal.plots.helper import MatplotlibDefaultDPI
@@ -47,6 +44,8 @@ from pycaret.utils.generic import (
     get_label_encoder,
     get_model_name,
 )
+
+LOGGER = get_logger()
 
 
 class _TabularExperiment(_PyCaretExperiment):
@@ -117,9 +116,9 @@ class _TabularExperiment(_PyCaretExperiment):
             default=self.fold_generator,
             seed=self.seed,
             shuffle=self.fold_shuffle_param,
-            int_default=(
-                "stratifiedkfold" if ml_usecase == MLUsecase.CLASSIFICATION else "kfold"
-            ),
+            int_default="stratifiedkfold"
+            if ml_usecase == MLUsecase.CLASSIFICATION
+            else "kfold",
         )
 
     def _is_unsupervised(self) -> bool:
@@ -389,12 +388,8 @@ class _TabularExperiment(_PyCaretExperiment):
         system: bool = True,
         display: Optional[CommonDisplay] = None,  # added in pycaret==2.2.0
         display_format: Optional[str] = None,
-        return_fig=False,
-    ) -> Union[str, PlotlyFigure, MatplotlibFigure]:
+    ) -> str:
         """Internal version of ``plot_model`` with ``system`` arg."""
-        assert not (
-            return_fig and save
-        ), "`save` and `return_fig` are mutually exclusive"
         self._check_setup_ran()
 
         function_params_str = ", ".join([f"{k}={v}" for k, v in locals().items()])
@@ -533,11 +528,7 @@ class _TabularExperiment(_PyCaretExperiment):
         # yellowbrick workaround end
 
         model_name = self._get_model_name(model)
-        base_plot_filename = (
-            f"{plot_name}.png"
-            if plot != "residuals_interactive"
-            else f"{plot_name}.html"
-        )
+        base_plot_filename = f"{plot_name}.png"
         with patch(
             "yellowbrick.utils.types.is_estimator",
             pycaret.internal.patches.yellowbrick.is_estimator,
@@ -593,27 +584,6 @@ class _TabularExperiment(_PyCaretExperiment):
 
                     self.logger.info("Visual Rendered Successfully")
 
-                def interactive_pipeline():
-                    from sklearn.utils import estimator_html_repr
-
-                    html = estimator_html_repr(estimator)
-
-                    if save:
-                        if not isinstance(save, bool):
-                            plot_filename = os.path.join(
-                                save, "Interactive Pipeline.html"
-                            )
-                        else:
-                            # plot_filename = base_plot_filename
-                            plot_filename = "Interactive Pipeline.html"
-                        self.logger.info(f"Saving '{plot_filename}'")
-                        with open(plot_filename, "w") as f:
-                            f.write(html)
-                        return plot_filename
-
-                    if return_fig:
-                        return html
-
                 def residuals_interactive():
                     from pycaret.internal.plots.residual_plots import (
                         InteractiveResidualsPlot,
@@ -641,8 +611,7 @@ class _TabularExperiment(_PyCaretExperiment):
                         resplots.write_html(plot_filename)
 
                     self.logger.info("Visual Rendered Successfully")
-
-                    return resplots.get_html() if return_fig else plot_filename
+                    return plot_filename
 
                 def cluster():
                     self.logger.info(
@@ -1942,11 +1911,15 @@ class _TabularExperiment(_PyCaretExperiment):
                 # execute the plot method
                 with redirect_output(self.logger):
                     ret = locals()[plot]()
-                if not ret:
-                    ret = base_plot_filename
+                if ret:
+                    plot_filename = ret
+                else:
+                    plot_filename = base_plot_filename
 
-                with suppress(Exception):
+                try:
                     plt.close()
+                except Exception:
+                    pass
 
         gc.collect()
 
@@ -1954,8 +1927,8 @@ class _TabularExperiment(_PyCaretExperiment):
             "plot_model() successfully completed......................................"
         )
 
-        if save or return_fig:
-            return ret
+        if save:
+            return plot_filename
 
     def plot_model(
         self,
@@ -1971,7 +1944,6 @@ class _TabularExperiment(_PyCaretExperiment):
         label: bool = False,
         verbose: bool = True,
         display_format: Optional[str] = None,
-        return_fig: bool = False,
     ) -> Optional[str]:
         """
         This function takes a trained model object and returns a plot based on the
@@ -2050,9 +2022,6 @@ class _TabularExperiment(_PyCaretExperiment):
             To display plots in Streamlit (https://www.streamlit.io/), set this to 'streamlit'.
             Currently, not all plots are supported.
 
-        return_fig: bool, defautl = False
-            whither or not return the rendered figure object
-
         Returns
         -------
         Visual_Plot
@@ -2086,7 +2055,6 @@ class _TabularExperiment(_PyCaretExperiment):
             label=label,
             verbose=verbose,
             display_format=display_format,
-            return_fig=return_fig,
         )
 
     def evaluate_model(

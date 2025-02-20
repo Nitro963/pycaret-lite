@@ -5,10 +5,9 @@ import time
 import traceback
 import warnings
 from abc import abstractmethod
-from collections.abc import Callable
 from copy import copy, deepcopy
 from functools import partial
-from typing import Any, BinaryIO, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, BinaryIO, Callable, Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import patch
 
 import matplotlib.pyplot as plt
@@ -41,7 +40,7 @@ from pycaret.internal.distributions import (
     get_skopt_distributions,
     get_tune_distributions,
 )
-from pycaret.internal.logging import redirect_output
+from pycaret.internal.logging import get_logger, redirect_output
 from pycaret.internal.meta_estimators import (
     CustomProbabilityThresholdClassifier,
     get_estimator_from_meta_estimator,
@@ -75,6 +74,8 @@ try:
     from collections.abc import Iterable
 except Exception:
     from collections import Iterable
+
+LOGGER = get_logger()
 
 
 class _SupervisedExperiment(_TabularExperiment):
@@ -389,7 +390,6 @@ class _SupervisedExperiment(_TabularExperiment):
         verbose: bool = True,
         parallel: Optional[ParallelBackend] = None,
         caller_params: Optional[dict] = None,
-        on_model_training_start_callback: Optional[Callable] = None,
     ) -> List[Any]:
         """
         This function train all the models available in the model library and scores them
@@ -741,8 +741,7 @@ class _SupervisedExperiment(_TabularExperiment):
                 else str(i)
             )
             model_name = self._get_model_name(model)
-            if on_model_training_start_callback is not None:
-                on_model_training_start_callback(model_name)
+
             if isinstance(model, str):
                 self.logger.info(f"Initializing {model_name}")
             else:
@@ -1144,26 +1143,14 @@ class _SupervisedExperiment(_TabularExperiment):
             for k, v in metrics.items():
                 score_dict[v.display_name] = []
                 if return_train_score:
-                    train_key = f"train_{k}"
-                    if train_key in scores:
-                        train_score = scores[train_key] * (
-                            1 if v.greater_is_better else -1
-                        )
-                        train_score = train_score.tolist()
-                        score_dict[v.display_name] = train_score
-                    else:
-                        self.logger.warning(
-                            f"Train scores for {k} not found in cross-validation results."
-                        )
-                test_key = f"test_{k}"
-                if test_key in scores:
-                    test_score = scores[test_key] * (1 if v.greater_is_better else -1)
-                    test_score = test_score.tolist()
-                    score_dict[v.display_name] += test_score
-                else:
-                    self.logger.warning(
-                        f"Test scores for {k} not found in cross-validation results."
+                    train_score = scores[f"train_{k}"] * (
+                        1 if v.greater_is_better else -1
                     )
+                    train_score = train_score.tolist()
+                    score_dict[v.display_name] = train_score
+                test_score = scores[f"test_{k}"] * (1 if v.greater_is_better else -1)
+                test_score = test_score.tolist()
+                score_dict[v.display_name] += test_score
 
             self.logger.info("Calculating mean and std")
 
@@ -1171,32 +1158,17 @@ class _SupervisedExperiment(_TabularExperiment):
             for k, v in metrics.items():
                 avgs_dict[v.display_name] = []
                 if return_train_score:
-                    train_key = f"train_{k}"
-                    if train_key in scores:
-                        train_score = scores[train_key] * (
-                            1 if v.greater_is_better else -1
-                        )
-                        train_score = train_score.tolist()
-                        avgs_dict[v.display_name] = [
-                            np.mean(train_score),
-                            np.std(train_score),
-                        ]
-                    else:
-                        self.logger.warning(
-                            f"Train scores for {k} not found in cross-validation results."
-                        )
-                test_key = f"test_{k}"
-                if test_key in scores:
-                    test_score = scores[test_key] * (1 if v.greater_is_better else -1)
-                    test_score = test_score.tolist()
-                    avgs_dict[v.display_name] += [
-                        np.mean(test_score),
-                        np.std(test_score),
-                    ]
-                else:
-                    self.logger.warning(
-                        f"Test scores for {k} not found in cross-validation results."
+                    train_score = scores[f"train_{k}"] * (
+                        1 if v.greater_is_better else -1
                     )
+                    train_score = train_score.tolist()
+                    avgs_dict[v.display_name] = [
+                        np.mean(train_score),
+                        np.std(train_score),
+                    ]
+                test_score = scores[f"test_{k}"] * (1 if v.greater_is_better else -1)
+                test_score = test_score.tolist()
+                avgs_dict[v.display_name] += [np.mean(test_score), np.std(test_score)]
 
             display.move_progress()
 
@@ -1266,7 +1238,7 @@ class _SupervisedExperiment(_TabularExperiment):
                     df_score = pd.concat([df_score, metrics], axis=1)
                     df_score.set_index(["Split", "Fold"], inplace=True)
 
-                    # concatenating train results to cross-validation score dataframe
+                    # concatenating train results to cross-validation socre dataframe
                     model_results = pd.concat([model_results, df_score])
 
                 model_fit_time = np.array(model_fit_end - model_fit_start).round(2)

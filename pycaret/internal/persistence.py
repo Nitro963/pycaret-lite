@@ -679,7 +679,7 @@ def _create_container_azure(container_name: str):
 
     Returns
     -------
-    container_client
+    cotainer_client
 
     """
 

@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
+from pmdarima.arima.utils import ndiffs, nsdiffs
 from statsmodels.tools.sm_exceptions import MissingDataError as SmMissingDataError
 from statsmodels.tsa.api import kpss
 from statsmodels.tsa.stattools import adfuller
@@ -524,7 +525,7 @@ def _is_white_noise(
         )
         is_white_noise = False if results[test_category].all() is False else True
         results.rename(
-            columns={"lb_stat": "Test Statistic", "lb_pvalue": "p-value"},
+            columns={"lb_stat": "Test Statictic", "lb_pvalue": "p-value"},
             inplace=True,
         )
         results["Data"] = name_
@@ -598,15 +599,6 @@ def recommend_lowercase_d(data: pd.Series, **kwargs) -> int:
     int
         The differencing order to use
     """
-    try:
-        from pmdarima.arima.utils import ndiffs
-    except ImportError:
-        raise ImportError(
-            "Error in recommend_lowercase_d: "
-            "soft dependency pmdarima is required to run this function. "
-            "Please install using `pip install pmdarima`"
-        )
-
     recommended_lowercase_d = ndiffs(data, **kwargs)
     return recommended_lowercase_d
 
@@ -638,15 +630,6 @@ def recommend_uppercase_d(data: pd.Series, sp: int, **kwargs) -> int:
     int
         The differencing order to use
     """
-    try:
-        from pmdarima.arima.utils import nsdiffs
-    except ImportError:
-        raise ImportError(
-            "Error in recommend_uppercase_d: "
-            "soft dependency pmdarima is required to run this function. "
-            "Please install using `pip install pmdarima`"
-        )
-
     recommended_uppercase_d = nsdiffs(data, m=sp, **kwargs)
     return recommended_uppercase_d
 

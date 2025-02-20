@@ -1,15 +1,13 @@
 # Module: internal.logging
 # Author: Antoni Baum (Yard1) <antoni.baum@protonmail.com>
-# Contributors (https://github.com/pycaret/pycaret/graphs/contributors)
 # License: MIT
-import functools
+
 import logging
 import os
 import traceback
 import warnings
-from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 try:
     from wurlitzer import pipes
@@ -103,9 +101,12 @@ class DummyLogger(logging.Logger):
         pass
 
 
-@functools.cache
 def get_logger() -> logging.Logger:
-    return create_logger(bool(os.environ.get("PYCARET_ENABLE_LOG", False)))
+    try:
+        assert bool(LOGGER)
+        return LOGGER
+    except Exception:
+        return create_logger(True)
 
 
 def create_logger(
@@ -164,7 +165,7 @@ def create_logger(
     return logger
 
 
-# LOGGER = create_logger()
+LOGGER = create_logger()
 
 
 # From https://stackoverflow.com/questions/28367810/how-to-change-the-logger-associated-to-logging-capturewarnings
@@ -185,7 +186,7 @@ def _showwarning(message, category, filename, lineno, file=None, line=None):
             _warnings_showwarning(message, category, filename, lineno, file, line)
     else:
         s = warnings.formatwarning(message, category, filename, lineno, line)
-        logger = get_logger()
+        logger = LOGGER
         if not logger.handlers:
             logger.addHandler(logging.NullHandler())
         # bpo-46557: Log str(s) as msg instead of logger.warning("%s", s)

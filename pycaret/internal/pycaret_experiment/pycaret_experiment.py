@@ -1,15 +1,8 @@
-# Copyright (C) 2019-2024 PyCaret
-# Author: Moez Ali (moez.ali@queensu.ca)
-# Contributors (https://github.com/pycaret/pycaret/graphs/contributors)
-# License: MIT
-
-
 import inspect
 import os
 import warnings
 from collections import defaultdict
-from collections.abc import Callable
-from typing import Any, BinaryIO, Dict, Optional, Union
+from typing import Any, BinaryIO, Callable, Dict, Optional, Union
 
 import cloudpickle
 import pandas as pd
@@ -20,6 +13,8 @@ import pycaret.internal.persistence
 from pycaret.internal.logging import get_logger
 from pycaret.utils.constants import DATAFRAME_LIKE
 from pycaret.utils.generic import LazyExperimentMapping
+
+LOGGER = get_logger()
 
 
 class _PyCaretExperiment:
@@ -33,7 +28,7 @@ class _PyCaretExperiment:
         self.exp_id = None
         self.gpu_param = False
         self.n_jobs_param = -1
-        self.logger = get_logger()
+        self.logger = LOGGER
         self._master_model_container = []
 
         # Data attrs

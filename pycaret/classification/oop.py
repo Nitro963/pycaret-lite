@@ -1,16 +1,9 @@
-# Copyright (C) 2019-2024 PyCaret
-# Author: Moez Ali (moez.ali@queensu.ca)
-# Contributors (https://github.com/pycaret/pycaret/graphs/contributors)
-# License: MIT
-
-
 import datetime
 import gc
 import logging
 import re
 import time
-from collections.abc import Callable
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from unittest.mock import patch
 
 import numpy as np  # type: ignore
@@ -27,6 +20,7 @@ from pycaret.containers.models.classification import (
     get_container_default_engines,
 )
 from pycaret.internal.display import CommonDisplay
+from pycaret.internal.logging import get_logger
 from pycaret.internal.meta_estimators import (
     CustomProbabilityThresholdClassifier,
     get_estimator_from_meta_estimator,
@@ -47,6 +41,8 @@ from pycaret.utils.generic import (
     highlight_setup,
 )
 
+LOGGER = get_logger()
+
 
 class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
     _create_app_predict_kwargs = {"raw_score": True}
@@ -60,7 +56,6 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
         )
         self._available_plots = {
             "pipeline": "Pipeline Plot",
-            "interactive_pipeline": "Pipeline",
             "parameter": "Hyperparameters",
             "auc": "AUC",
             "confusion_matrix": "Confusion Matrix",
@@ -397,7 +392,7 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
 
         group_features: dict or None, default = None
             When the dataset contains features with related characteristics,
-            add new features with the following statistical properties of that
+            add new fetaures with the following statistical properties of that
             group: min, max, mean, std, median and mode. The parameter takes a
             dict with the group name as key and a list of feature names
             belonging to that group as value.
@@ -539,11 +534,11 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
 
         custom_pipeline: list of (str, transformer), dict or Pipeline, default = None
             Addidiotnal custom transformers. If passed, they are applied to the
-            pipeline last, after all the built-in transformers.
+            pipeline last, after all the build-in transformers.
 
 
         custom_pipeline_position: int, default = -1
-            Position of the custom pipeline in the overall preprocessing pipeline.
+            Position of the custom pipeline in the overal preprocessing pipeline.
             The default value adds the custom pipeline last.
 
 
@@ -1047,7 +1042,6 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
         engine: Optional[Dict[str, str]] = None,
         verbose: bool = True,
         parallel: Optional[ParallelBackend] = None,
-        on_model_training_start_callback: Optional[Callable] = None,
     ) -> Union[Any, List[Any]]:
         """
         This function trains and evaluates performance of all estimators available in the
@@ -1201,7 +1195,6 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
                 probability_threshold=probability_threshold,
                 parallel=parallel,
                 caller_params=caller_params,
-                on_model_training_start_callback=on_model_training_start_callback,
             )
         finally:
             if engine is not None:
@@ -2282,7 +2275,7 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
         or logistic regression. The output of this function is a score grid with CV
         scores by fold. Metrics evaluated during CV can be accessed using the
         ``get_metrics`` function. Custom metrics can be added or removed using
-        ``add_metric`` and ``remove_metric`` function. The output of the original estimator
+        ``add_metric`` and ``remove_metric`` function. The ouput of the original estimator
         and the calibrated estimator (created using this function) might not differ much.
         In order to see the calibration differences, use 'calibration' plot in ``plot_model``
         to see the difference before and after.
@@ -2711,7 +2704,7 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
 
         message = (
             "optimization loop finished successfully. "
-            f"Best threshold: {result.x[0]} with {optimize}={result.fun * direction}"
+            f"Best threshold: {result.x[0]} with {optimize}={result.fun*direction}"
         )
         if verbose:
             print(message)
@@ -3442,7 +3435,7 @@ class ClassificationExperiment(_NonTSSupervisedExperiment, Preprocessor):
         else:
             labels_ = None
 
-        # Replacing chars which dash doesnt accept for column name `.` , `{`, `}`
+        # Replaceing chars which dash doesnt accept for column name `.` , `{`, `}`
         X_test_df = self.X_test_transformed.copy()
         X_test_df.columns = [
             col.replace(".", "__").replace("{", "__").replace("}", "__")
